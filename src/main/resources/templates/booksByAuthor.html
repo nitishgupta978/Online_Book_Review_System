@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Welcome User</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <section class="w3-main">
+        <div>
+            <h1 class="page-header">Books By Author</h1>
+            <div class="card w3-light-gray position: relative; z-index: 1;">
+                <div class="card-block">
+                    <p th:if="${message}" th:text="${message}" class="text-success"></p>
+                    <div th:with="expr_result = ${bookResult.size() > 0}">
+                        <div th:if="${expr_result}">
+                            <div class="row row-cols-1 row-cols-md-5">
+                                <span th:each="book : ${bookResult}">
+                                    <div class="col mb-4">
+                                        <div class="card h-100">
+                                            <img src="../static/images/books/book.png" th:src="@{'/file/getImage/'+${book.bookImage}}" alt="book" class="card-img-top">
+                                            <div class="card-body">
+                                                <h5 class="card-title"><span th:text="${book.title}"></span></h5>
+                                                <p class="card-text text-justify"><span  th:text="${book.description}"></span></p>
+                                            </div>
+                                            <!--<ul class="list-group list-group-flush">
+                                                <li class="list-group-item">ISBN:<span th:text="${book.isbn}"></span></li>
+                                                <li class="list-group-item">Category:<span th:text="${book?.category?.name}"></span></li>
+                                                <li class="list-group-item">Author:<span th:text="${book?.author?.name}"></span></li>
+                                            </ul>-->
+                                            <div class="card-body">
+<!--                                                <a href="#" th:href="@{/book/byAuthor/(authorId=${book?.author?.id})}" class="card-link">Get All Books for this Author</a>-->
+                                                <a href="#" th:href="@{/book/bookDetail/(id=${book.id})}" class="card-link">Book Details</a>
+                                            </div>
+                                             <div class="card-footer">
+                                                <small class="text-muted">Released On <span th:text="${book.releaseDate}"></span></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </span>
+                            </div>
+                            <!-- books pagination - Pagination Bar -->
+                            <nav aria-label="Pagination" th:if="${page.totalPages gt 0}">
+                                <ul class="pagination justify-content-end font-weight-medium">
+                                    <li class="page-item" th:classappend="${page.first}?'disabled':''">
+                                        <span th:if='${page.first}'>← First</span>
+                                        <a class="page-link svg-icon" th:if='${not page.first}' th:href='@{/book/byAuthor(authorId=${authorId},page=0,size=${page.size})}'>← First</a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${page.number eq 0} ? 'disabled'">
+                                        <span th:if='${not page.hasPrevious()}'>Previous</span>
+                                        <a class="page-link svg-icon" th:if='${page.hasPrevious()}' th:href='@{/book/byAuthor(authorId=${authorId},page=${page.number-1},size=${page.size})}' aria-label="Previous" title='Go to previous page' rel="tooltip">Previous</a>
+                                    </li>
+                                    <li th:each="i : ${#numbers.sequence(page.number, page.totalPages > 6 + page.number ? page.number + 6 : page.totalPages-1, 1)}" class="page-item" th:classappend="${i eq page.number} ? 'active'" >
+                                        <a class="page-link" th:href="@{/book/byAuthor(authorId=${authorId},page=${i},size=${page.size})}" th:text="${i}" th:title="${'Page '+ i}" rel="tooltip"></a>
+                                    </li>
+                                    <li class="page-item disabled" th:if="${page.number + 6 < page.totalPages}">
+                                        <a class="page-link svg-icon" href="#">
+                                            <span data-feather="more-horizontal" width="20" height="20">...</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${page.number + 1 eq page.totalPages} ? 'disabled':''">
+                                        <a class="page-link svg-icon" th:href="@{/book/byAuthor(authorId=${authorId},page=${page.number+1},size=${page.size})}" aria-label="Next" title="Next Page" rel="tooltip">
+                                            Next
+                                        </a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${page.last}? 'disabled' : ''">
+                                        <span th:if='${page.last}'>Last →</span>
+                                        <a class="page-link svg-icon" th:if='${not page.last}' th:href='@{/book/byAuthor(authorId=${authorId},page=${page.totalPages - 1},size=${page.size})}'>Last →</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div th:unless="${expr_result}">
+                            <h5 class="w3-text-black"><b>Right Now No Books Are Available For This Category..</b></h5>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary hBack" type="button">Back</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<th:block layout:fragment="script">
+    <link rel="stylesheet" th:href="@{/css/background.css}" href="../static/css/background.css"/>
+    <script type="application/javascript" th:src="@{/js/home.js}" src="../static/js/home.js"></script>
+</th:block>
+</body>
+</html>

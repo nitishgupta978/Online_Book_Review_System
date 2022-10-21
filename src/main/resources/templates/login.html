@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Sign In Here</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <section class="w3-main">
+        <!-- Sign In Section -->
+        <div class="w3-container w3-padding-large">
+            <h1 class="page-header">Sign In</h1>
+            <div th:if="${param.error}">
+                <label class="ui-state-error-text w3-text-red">Invalid username or password.</label>
+            </div>
+            <div th:if="${param.logout}">
+                <label>
+                    You have been logged out.
+                </label>
+            </div>
+            <hr class="w3-opacity">
+
+            <form th:action="@{/login}" method="post">
+                <div class="w3-section">
+                    <label> User Name : </label><input class="w3-input w3-border" type="text" name="username" required/>
+                </div>
+                <div class="w3-section">
+                    <label> Password : </label><input class="w3-input w3-border" type="password" name="password" required/>
+                </div>
+
+                <button class="w3-button w3-blue w3-padding-large w3-hover-black">Sign In</button>
+                <a class="w3-button w3-blue w3-padding-large w3-hover-black" th:href="@{/user/registration/(role=user)}" id="register">First time User! Register Here</a>
+            </form>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

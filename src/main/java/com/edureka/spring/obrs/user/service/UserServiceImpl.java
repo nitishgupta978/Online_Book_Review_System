@@ -1,0 +1,129 @@
+package com.edureka.spring.obrs.user.service;
+
+import com.edureka.spring.obrs.common.utils.LogUtil;
+import com.edureka.spring.obrs.error.exceptions.AlreadyExistsException;
+import com.edureka.spring.obrs.error.exceptions.NotFoundException;
+import com.edureka.spring.obrs.role.entity.Role;
+import com.edureka.spring.obrs.role.repository.RoleRepository;
+import com.edureka.spring.obrs.user.entity.User;
+import com.edureka.spring.obrs.user.repository.UserRepository;
+import com.edureka.spring.obrs.user.security.EncryptionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+
+@Service
+@Profile("springdatajpa")
+public class UserServiceImpl implements UserService {
+    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
+    private final String CLASS_NAME = this.getClass().getName();
+
+    private UserRepository userRepository;
+    private RoleRepository roleRepository;
+    private EncryptionService encryptionService;
+
+    @Autowired
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Autowired
+    public void setRoleRepository(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
+
+    @Autowired
+    public void setEncryptionService(EncryptionService encryptionService) {
+        this.encryptionService = encryptionService;
+    }
+
+    @Override
+    public List<?> findAll() {
+        List<User> users = new ArrayList<>();
+        this.userRepository.findAll().forEach(users::add); //fun with Java 8
+        return users;
+    }
+
+
+
+    @Override
+    public User findById(Integer id) {
+        Optional<User> user = this.userRepository.findById(id);
+        if(user.isPresent())
+            return user.get();
+        else
+            System.err.println("User Not Found");
+
+        throw new NotFoundException("User Not Found");
+    }
+
+    @Override
+    public User saveOrUpdate(User domainObject) {
+        if(domainObject.getPassword() != null){
+            domainObject.setEncryptedPassword(encryptionService.encryptString(domainObject.getPassword()));
+        }
+        return this.userRepository.save(domainObject);
+    }
+    @Override
+    @Transactional
+    public void deleteById(Integer id) {
+        if (this.userRepository.existsById(id)) {
+            LogUtil.logError(LOG,CLASS_NAME,"deleteById","User exists for this user id");
+            this.userRepository.deleteById(id);
+        } else {
+            LogUtil.logError(LOG,CLASS_NAME,"deleteById","User Not Found");
+            throw new NotFoundException("User Not Found For This id -  " + id);
+        }
+    }
+
+    @Override
+    public User registerNewUser(final User user, String role) {
+        if (existsByEmail(user.getEmail())) {
+            LogUtil.logError(LOG,CLASS_NAME,"registerNewUser","There is an account with this email address: " + user.getEmail());
+            throw new AlreadyExistsException("There is an account with this email address: " + user.getEmail());
+        }
+        if (existsByUsername(user.getUserName())) {
+            LogUtil.logError(LOG,CLASS_NAME,"registerNewUser","There is an account with this username: " + user.getUserName());
+            throw new AlreadyExistsException("There is an account with this username: " + user.getUserName());
+        }
+        if(user.getPassword() != null){
+            user.setEncryptedPassword(encryptionService.encryptString(user.getPassword()));
+        }
+        Role byRole = this.roleRepository.findByRole(role);
+        user.setRoles(new HashSet<Role>(Arrays.asList(byRole)));
+
+        return this.userRepository.save(user);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return this.userRepository.findByUserName(username);
+    }
+
+    @Override
+    public boolean existsById(Integer id) {
+        return this.userRepository.existsById(id);
+    }
+
+    private boolean existsByEmail(final String email) {
+        return this.userRepository.findByEmail(email) != null;
+    }
+
+    private boolean existsByUsername(final String userName) {
+        return this.userRepository.findByUserName(userName) != null;
+    }
+
+    @Override
+    public List<?> findUsersByRoles(String role){
+        List<User> users = new ArrayList<>();
+//        Role publisherRole = roleRepository.findByRole("ROLE_PUBLISHER");
+        Role byRole = this.roleRepository.findByRole(role);
+        this.userRepository.findUsersByRolesIn(new HashSet<Role>(Arrays.asList(byRole))).forEach(users::add); //fun with Java 8
+        return users;
+    }
+}
